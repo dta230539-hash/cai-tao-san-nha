@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thử thách cải tạo sân nhà</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eaf4ff;--card:#fff;--ink:#16324f;--mut:#58708a;--pri:#ff8a3d;--pri2:#d9621a;--ok:#17a06a;--bad:#e5484d;--line:#d3e3f4;--soft:#f3f8fe;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a2a;--card:#162840;--ink:#e8f1fb;--mut:#9db2c8;--line:#294262;--soft:#10203a}}
+:root[data-theme="dark"]{--bg:#0e1a2a;--card:#162840;--ink:#e8f1fb;--mut:#9db2c8;--line:#294262;--soft:#10203a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 'Be Vietnam Pro',system-ui,'Segoe UI',sans-serif}
+h1,h2,.tag,.btn{font-family:'Baloo 2','Be Vietnam Pro',system-ui,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:10px 16px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+h1{margin:0;font-size:clamp(20px,3.2vw,30px);font-weight:800}
+header p{display:none}
+.steps{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.pill{padding:6px 14px;border-radius:99px;border:2px solid var(--line);background:var(--card);font-weight:600;font-size:14px;color:var(--mut);transition:.3s}
+.pill.active{border-color:var(--pri);color:var(--pri2);box-shadow:0 0 0 4px rgba(255,138,61,.2)}
+.pill.done{border-color:var(--ok);color:var(--ok)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;margin-top:14px}
+.stagewrap{overflow:hidden;padding:4px}
+.layout{display:grid;gap:12px;margin-top:10px;align-items:start}
+.layout .card{margin-top:0}
+svg{display:block;width:100%;height:auto;max-height:46dvh;margin:0 auto}
+/* Điện thoại dọc / màn hình hẹp: khung hình dính trên cùng để luôn thấy hoạt ảnh khi cuộn xuống bảng nhập */
+.stagewrap{position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+/* Máy tính, máy tính bảng, điện thoại xoay ngang: chia 2 cột */
+@media(min-width:900px),(orientation:landscape) and (min-width:560px){
+  .layout{grid-template-columns:minmax(0,1fr) clamp(280px,34vw,400px)}
+  .stagewrap{position:static}
+  .panel{max-height:calc(100dvh - 110px);overflow:auto}
+  svg{max-height:calc(100dvh - 110px)}
+  .row{flex-direction:column;align-items:flex-start}}
+.t{fill:#16324f;font:600 14px 'Be Vietnam Pro',system-ui,sans-serif}
+.fade{opacity:0;transition:opacity .6s}
+.panel{padding:14px 18px}
+.tag{font-size:22px;font-weight:800;color:var(--pri2)}
+.info{margin:2px 0 6px;color:var(--mut)}
+.q{margin:6px 0 14px;font-size:18px;font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+label{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-weight:600;font-size:15px}
+label span{line-height:1.25;white-space:nowrap}
+label .in{display:inline-flex;align-items:center;gap:8px}
+input{font:inherit;font-size:20px;width:96px;padding:8px 10px;border:2px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);text-align:center}
+input:focus-visible,.btn:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn{background:var(--pri);color:#fff;border:0;border-radius:12px;padding:8px 26px;font-size:19px;font-weight:800;cursor:pointer;box-shadow:0 4px 0 var(--pri2)}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--pri2)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.ok{background:var(--ok);box-shadow:0 4px 0 #0f7a4e;margin-top:14px}
+.msg{margin-top:14px;padding:10px 14px;border-radius:12px;background:rgba(60,140,255,.12)}
+.msg.bad{background:rgba(229,72,77,.14)}
+.msg.warn{background:rgba(255,184,0,.2)}
+.msg.ok{background:rgba(23,160,106,.16);font-weight:600}
+.sol{margin-top:12px;padding:10px 16px;border-left:5px solid var(--ok);background:var(--soft);border-radius:8px}
+.cell{fill:none;stroke:none}
+.cell.on{fill:#e0894f;stroke:#fff;stroke-opacity:.75;stroke-width:.8;stroke-dasharray:none;animation:pop .3s}
+.cell.on.b{fill:#cf7035}
+.cell.gap{fill:rgba(229,72,77,.22);stroke:none;shape-rendering:crispEdges;animation:blink 1s infinite}
+@keyframes pop{from{opacity:.2}to{opacity:1}}
+@keyframes blink{50%{opacity:.45}}
+.frame{fill:#ff8fb1;fill-opacity:0;stroke:#6b4eff;stroke-width:4;stroke-linejoin:round;stroke-dasharray:100;stroke-dashoffset:100}
+.slot{fill:none;stroke:#16324f;stroke-opacity:.3;stroke-dasharray:4 4}
+.ghost{fill:rgba(229,72,77,.1);stroke:#e5484d;stroke-width:3;stroke-dasharray:6 5}
+.win{position:fixed;inset:0;background:rgba(10,25,45,.75);display:grid;place-items:center;z-index:50;padding:16px}
+.win[hidden]{display:none}
+.box{background:var(--card);border-radius:22px;padding:24px;max-width:480px;width:100%;text-align:center;max-height:100%;overflow:auto}
+.box h2{margin:0 0 6px;font-size:30px;color:var(--pri2)}
+table{width:100%;border-collapse:collapse;margin:14px 0;text-align:left}
+td,th{padding:8px 10px;border-bottom:1px solid var(--line)}
+td:last-child,th:last-child{text-align:right}
+.total td{font-weight:800}
+.conf{position:fixed;top:-20px;width:10px;height:14px;z-index:60;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.cloud{animation:drift 18s ease-in-out infinite alternate}
+.fly{animation:fly 7s ease-in-out infinite}
+.wing{transform-origin:0 0;animation:flap .22s ease-in-out infinite alternate}
+.spin{transform-origin:575px 22px;animation:spin 14s linear infinite}
+@keyframes drift{to{transform:translateX(30px)}}
+@keyframes fly{0%,100%{transform:translate(0px,0px)}25%{transform:translate(30px,-18px)}50%{transform:translate(60px,4px)}75%{transform:translate(30px,16px)}}
+@keyframes flap{to{transform:scaleX(.3)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:600px){
+  body{font-size:15px}
+  .wrap{padding:8px 10px}
+  header{justify-content:center;text-align:center}
+  h1{font-size:20px;width:100%}
+  .steps{gap:5px}
+  .pill{padding:4px 9px;font-size:12px}
+  #mute{font-size:12px!important}
+  .card{border-radius:14px}
+  .panel{padding:12px 14px}
+  .tag{font-size:19px}
+  .q{font-size:16px;margin:4px 0 10px}
+  .row{gap:10px}
+  .row .btn{width:100%}
+  .btn.ok{width:100%}
+  .t{font-size:18px}
+  .box{padding:18px}
+  .box h2{font-size:24px}
+  td,th{padding:6px}}
+@media(prefers-reduced-motion:reduce){.cell.on,.cell.gap{animation:none}.deco{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>🏡 THỬ THÁCH CẢI TẠO SÂN NHÀ</h1>
+  <p>Vượt qua 3 ải để giúp gia đình hoàn thành khuôn viên sân nhà.</p>
+  <nav class="steps"><div class="pill" id="p0"></div><div class="pill" id="p1"></div><div class="pill" id="p2"></div></nav>
+  <button id="mute" class="pill" style="cursor:pointer;font:600 14px 'Be Vietnam Pro',system-ui,sans-serif">🔊 Âm thanh: bật</button>
+</header>
+
+<main class="layout">
+<div class="card stagewrap">
+<svg id="scene" viewBox="0 0 960 540" role="img" aria-label="Sân nhà đang được cải tạo">
+  <rect width="960" height="540" rx="12" fill="#d9efc9"/>
+  <!-- Trang trí -->
+  <g id="decor">
+    <circle cx="575" cy="22" r="11" fill="#ffd23f"/><circle class="deco spin" cx="575" cy="22" r="17" fill="none" stroke="#ffd23f" stroke-width="3" stroke-dasharray="3 5"/>
+    <rect x="25" y="26" width="6" height="14" fill="#8b5a2b"/><circle cx="28" cy="22" r="15" fill="#43a047"/><circle cx="22" cy="27" r="9" fill="#4caf50"/>
+    <rect x="570" y="452" width="8" height="24" fill="#8b5a2b"/><circle cx="574" cy="446" r="20" fill="#43a047"/><circle cx="566" cy="454" r="12" fill="#4caf50"/>
+    <ellipse cx="22" cy="470" rx="16" ry="12" fill="#4caf50"/>
+    <ellipse cx="180" cy="522" rx="22" ry="11" fill="#4caf50"/><ellipse cx="270" cy="522" rx="22" ry="11" fill="#43a047"/><ellipse cx="360" cy="522" rx="22" ry="11" fill="#4caf50"/><ellipse cx="450" cy="522" rx="22" ry="11" fill="#43a047"/>
+    <g fill="#ff6fa5"><circle cx="172" cy="518" r="3"/><circle cx="188" cy="524" r="3"/><circle cx="352" cy="519" r="3"/><circle cx="368" cy="524" r="3"/><circle cx="16" cy="466" r="3"/></g>
+    <g fill="#ffd23f"><circle cx="262" cy="519" r="3"/><circle cx="278" cy="524" r="3"/><circle cx="442" cy="519" r="3"/><circle cx="458" cy="524" r="3"/><circle cx="28" cy="474" r="3"/></g>
+  </g>
+  <g id="decor2">
+    <g class="deco cloud" fill="#fff" fill-opacity=".85"><circle cx="150" cy="14" r="8"/><circle cx="162" cy="12" r="10"/><circle cx="175" cy="15" r="7"/></g>
+    <g class="deco cloud" fill="#fff" fill-opacity=".85"><circle cx="690" cy="14" r="8"/><circle cx="703" cy="11" r="10"/><circle cx="716" cy="15" r="7"/></g>
+    <g class="deco cloud" fill="#fff" fill-opacity=".85"><circle cx="880" cy="16" r="8"/><circle cx="892" cy="13" r="10"/><circle cx="905" cy="17" r="7"/></g>
+    <ellipse cx="14" cy="120" rx="10" ry="14" fill="#4caf50"/><ellipse cx="14" cy="150" rx="10" ry="14" fill="#43a047"/><circle cx="12" cy="117" r="3" fill="#ff6fa5"/><circle cx="16" cy="152" r="3" fill="#ffd23f"/>
+    <ellipse cx="14" cy="340" rx="10" ry="14" fill="#43a047"/><ellipse cx="14" cy="372" rx="10" ry="14" fill="#4caf50"/><circle cx="12" cy="338" r="3" fill="#ffd23f"/><circle cx="16" cy="374" r="3" fill="#ff6fa5"/>
+    <rect x="566" y="136" width="4" height="52" fill="#56626e"/><circle cx="568" cy="130" r="14" fill="#ffe27a" fill-opacity=".3"/><circle cx="568" cy="130" r="8" fill="#ffe27a" stroke="#56626e"/>
+    <rect x="566" y="250" width="4" height="30" fill="#8b5a2b"/><rect x="556" y="238" width="24" height="14" rx="5" fill="#e5484d" stroke="#8d2a2d"/><rect x="578" y="240" width="3" height="8" fill="#ffd23f"/>
+    <g transform="translate(-742 0)"><rect x="860" y="480" width="8" height="16" fill="#8d6e63"/><polygon points="782,500 835,476 888,500" fill="#c8553d"/><rect x="790" y="500" width="90" height="35" fill="#f4d6a0" stroke="#b08a55"/><rect x="825" y="512" width="18" height="23" fill="#8b5a2b"/><rect x="798" y="508" width="16" height="14" fill="#bfe6ff" stroke="#b08a55"/><rect x="856" y="508" width="16" height="14" fill="#bfe6ff" stroke="#b08a55"/>
+    <ellipse cx="770" cy="530" rx="14" ry="8" fill="#4caf50"/><ellipse cx="900" cy="530" rx="14" ry="8" fill="#43a047"/><circle cx="765" cy="526" r="3" fill="#ff6fa5"/><circle cx="905" cy="526" r="3" fill="#ffd23f"/></g>
+    <polygon points="88,442 132,442 124,458 98,458" fill="#e5484d" stroke="#8d2a2d"/><circle cx="128" cy="462" r="6" fill="#2b3a4a"/><path d="M88 442L70 436M98 458L74 466" stroke="#8b5a2b" stroke-width="3" fill="none"/>
+    <rect x="146" y="458" width="14" height="8" fill="#e0894f" stroke="#fff"/><rect x="162" y="458" width="14" height="8" fill="#cf7035" stroke="#fff"/><rect x="154" y="450" width="14" height="8" fill="#e0894f" stroke="#fff"/>
+    <g transform="translate(500 495)"><g class="deco fly"><g class="deco wing"><ellipse cx="-4" cy="0" rx="4" ry="5" fill="#ff6fa5"/><ellipse cx="4" cy="0" rx="4" ry="5" fill="#ffb3d1"/></g><rect x="-.6" y="-4" width="1.2" height="8" fill="#16324f"/></g></g>
+    <g transform="translate(90 16)"><g class="deco fly"><g class="deco wing"><ellipse cx="-4" cy="0" rx="4" ry="5" fill="#ffd23f"/><ellipse cx="4" cy="0" rx="4" ry="5" fill="#ffe9a0"/></g><rect x="-.6" y="-4" width="1.2" height="8" fill="#16324f"/></g></g>
+  </g>
+  <!-- Sân -->
+  <rect x="60" y="60" width="480" height="360" fill="#d8c39a" stroke="#a68d5f" stroke-width="2"/>
+  <g id="speck"></g><g id="cells"></g>
+  <path d="M60 40H540M60 34v12M540 34v12M38 60V420M32 60h12M32 420h12" stroke="#16324f" stroke-width="1.5" fill="none"/>
+  <text class="t" x="300" y="31" text-anchor="middle">Dài 8 m</text>
+  <text class="t" transform="translate(22 240) rotate(-90)" text-anchor="middle">Rộng 6 m</text>
+  <!-- Hàng rào -->
+  <path id="fence" d="M548 52V428H52V52H548" pathLength="100" fill="none" stroke="#56626e" stroke-width="5" stroke-linejoin="round" style="stroke-dasharray:100;stroke-dashoffset:100"/>
+  <g id="posts" class="fade" fill="#8b5a2b"><circle cx="548" cy="52" r="7"/><circle cx="548" cy="428" r="7"/><circle cx="52" cy="428" r="7"/><circle cx="52" cy="52" r="7"/></g>
+  <path id="tail" class="fade" d="M790 112C700 112 640 60 548 52" fill="none" stroke="#56626e" stroke-width="4"/>
+  <text id="fencelbl" class="t fade" x="330" y="484" text-anchor="middle" style="font-weight:800"></text>
+  <!-- Máy lát gạch -->
+  <!-- Máy lát gạch kiểu giàn: dầm chạy dọc theo từng hàng, xe con chạy trên dầm và thả gạch xuống đúng ô -->
+  <g id="gantry" style="opacity:0;transition:opacity .4s"><rect x="44" y="-3" width="512" height="6" rx="3" fill="#56626e"/><rect x="38" y="-10" width="14" height="20" rx="3" fill="#ff9f1c" stroke="#b86a00"/><rect x="548" y="-10" width="14" height="20" rx="3" fill="#ff9f1c" stroke="#b86a00"/></g>
+  <g id="machine" style="opacity:0;transition:opacity .4s"><rect x="-13" y="-15" width="26" height="13" rx="3" fill="#ff9f1c" stroke="#b86a00" stroke-width="1.5"/><rect x="-3" y="-2" width="6" height="13" fill="#2b3a4a"/><rect x="-7" y="10" width="14" height="4" rx="1" fill="#cf7035" stroke="#fff" stroke-width=".8"/></g>
+  <!-- Viên gạch mẫu -->
+  <g id="sample" style="transition:opacity .6s"><rect x="600" y="60" width="46" height="46" fill="#e0894f" stroke="#fff" stroke-width="2"/>
+  <text class="t" x="660" y="80">Viên gạch vuông</text><text class="t" x="660" y="100">cạnh 40 cm</text></g>
+  <!-- Cuộn dây -->
+  <g id="spool" class="fade">
+    <text id="spooltxt" class="t" x="840" y="40" text-anchor="middle"></text>
+    <circle cx="840" cy="110" r="52" fill="#aab4bf" stroke="#56626e" stroke-width="3"/>
+    <circle id="coil" cx="840" cy="110" r="46" fill="#7d8a97"/>
+    <circle id="coil2" cx="840" cy="110" r="40" fill="none" stroke="#c7d0d9" stroke-width="2" stroke-dasharray="3 4"/>
+    <circle cx="840" cy="110" r="10" fill="#56626e"/>
+  </g>
+  <g id="bar" class="fade">
+    <rect x="620" y="186" width="300" height="18" fill="#cfe6d6" stroke="#16324f" stroke-opacity=".3"/>
+    <rect id="bF" x="620" y="186" width="0" height="18" fill="#ff8a3d"/>
+    <rect id="bM" x="620" y="186" width="0" height="18" fill="#7c4dff"/>
+    <rect id="bR" x="620" y="186" width="300" height="18" fill="#17a06a"/>
+    <rect x="620" y="214" width="12" height="12" fill="#ff8a3d"/><text id="lgF" class="t" x="640" y="225"></text>
+    <rect x="620" y="232" width="12" height="12" fill="#7c4dff"/><text id="lgM" class="t" x="640" y="243"></text>
+    <rect x="620" y="250" width="12" height="12" fill="#17a06a"/><text id="lgR" class="t" x="640" y="261"></text>
+  </g>
+  <!-- Gạch dư -->
+  <g id="spare"></g><text id="sparecap" class="t" x="590" y="292"></text>
+  <!-- Bản vẽ khung bồn hoa (hình thang vuông) -->
+  <g id="bp" class="fade">
+    <path d="M660 312H706L798 381H660Z" fill="#ffe7a8" stroke="#6b4eff" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M668 312V320H660M660 373H668V381" fill="none" stroke="#16324f" stroke-width="1.5"/>
+    <text class="t" x="683" y="304" text-anchor="middle">Đáy nhỏ 1 m</text>
+    <text class="t" x="729" y="400" text-anchor="middle">Đáy lớn 3 m</text>
+    <text class="t" x="652" y="351" text-anchor="end">Cao 1,5 m</text>
+    <text class="t" x="772" y="338">Cạnh bên 2,5 m</text>
+  </g>
+  <g id="slots" class="fade"></g>
+</svg>
+</div>
+
+<section class="card panel" id="panel"></section>
+</main>
+</div>
+
+<div id="win" class="win" hidden>
+  <div class="box">
+    <h2>🎉 CHÚC MỪNG BẠN! 🎉</h2>
+    <p>Bạn đã xuất sắc vượt qua cả 3 thử thách và giúp gia đình hoàn thành công việc cải tạo sân nhà!</p>
+    <table><thead><tr><th>Nội dung</th><th>Kết quả</th></tr></thead><tbody id="stats"></tbody></table>
+    <button class="btn" id="again">CHƠI LẠI</button>
+  </div>
+</div>
+
+<script>
+/* ====== Tiện ích ====== */
+const $ = s => document.querySelector(s), NS = 'http://www.w3.org/2000/svg';
+const mk = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = x => String(Math.round(x * 10) / 10).replace('.', ',');
+const num = s => { s = String(s).trim().replace(',', '.'); return /^\d+(\.\d+)?$/.test(s) ? +s : NaN };
+const trap = (ox, oy, s) => `M${ox} ${oy}L${ox + s} ${oy}L${ox + 3 * s} ${oy + 1.5 * s}L${ox} ${oy + 1.5 * s}Z`; // hình thang vuông: đáy nhỏ 1, đáy lớn 3, cao 1,5
+function anim(ms, fn, tok) { // chạy hoạt ảnh; trả về false nếu lượt chơi đã bị đặt lại
+  return new Promise(res => { const t0 = performance.now();
+    (function f(t) { if (tok !== run) return res(false); const p = Math.min(1, (t - t0) / ms); fn(p); p < 1 ? requestAnimationFrame(f) : res(true) })(t0) });
+}
+function confetti(n) {
+  for (let i = 0; i < n; i++) { const d = document.createElement('i'); d.className = 'conf';
+    d.style.cssText = `left:${Math.random() * 100}vw;background:hsl(${Math.random() * 360} 85% 60%);animation-duration:${2 + Math.random() * 2.5}s;animation-delay:${Math.random() * .6}s`;
+    document.body.appendChild(d); setTimeout(() => d.remove(), 5500) }
+}
+
+/* ====== Âm thanh (Web Audio, không cần file ngoài) ====== */
+let AC = null, muted = false, engine = null;
+function ac() {
+  if (muted) return null;
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)() } catch (e) { return null } }
+  if (AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function tone(f, d = .15, type = 'sine', v = .15, t0 = 0, f2) {
+  const c = ac(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + t0;
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + d);
+  g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t + d);
+  o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + d + .02);
+}
+const sfx = {
+  click: () => tone(660, .06, 'triangle', .1),
+  warn: () => { tone(330, .12, 'square', .07); tone(330, .12, 'square', .07, .16) },
+  lay: () => tone(190 + Math.random() * 50, .07, 'square', .06, 0, 90),
+  good: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, .25, 'triangle', .14, i * .11)),
+  bad: () => { tone(220, .25, 'sawtooth', .08, 0, 150); tone(165, .35, 'sawtooth', .08, .22, 110) },
+  twang: () => tone(520, .45, 'sine', .15, 0, 180),
+  win: () => [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, .3, 'triangle', .14, i * .13))
+};
+function motor(on, kind) { // tiếng động cơ / cuộn dây chạy liên tục
+  if (engine) { engine.stop(); engine = null }
+  const c = on && ac(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain(), l = c.createOscillator(), lg = c.createGain(), w = kind === 'wire';
+  o.type = 'sawtooth'; o.frequency.value = w ? 220 : 70; l.frequency.value = w ? 18 : 9; lg.gain.value = w ? 40 : 12; g.gain.value = .03;
+  l.connect(lg); lg.connect(o.frequency); o.connect(g); g.connect(c.destination); o.start(); l.start();
+  engine = { stop() { try { o.stop(); l.stop() } catch (e) {} } };
+}
+$('#mute').onclick = () => { muted = !muted; motor(false); $('#mute').textContent = muted ? '🔇 Âm thanh: tắt' : '🔊 Âm thanh: bật'; sfx.click() };
+
+/* ====== Trạng thái ====== */
+const COLS = 20, ROWS = 15, CS = 24, X0 = 60, Y0 = 60, PARK = [90, 480], SY = 420;
+let run = 0, level = 1, wrong = [0, 0, 0], solved = [false, false, false], seq = [];
+const mach = $('#machine');
+const NAMES = ['Lát gạch', 'Làm hàng rào', 'Uốn khung bồn hoa'];
+
+/* ====== Cảnh ====== */
+const setMachine = ([x, y]) => { mach.style.transform = `translate(${x}px,${y}px)`; $('#gantry').style.transform = `translateY(${y}px)` };
+const machOn = v => ['#machine', '#gantry'].forEach(s => $(s).style.opacity = v);
+const cellPos = i => [+seq[i].getAttribute('x') + CS / 2, +seq[i].getAttribute('y')]; // x: giữa ô, y: mép trên của hàng (dầm nằm ở đây)
+const show = (s, v = 1) => $(s).style.opacity = v;
+
+function initScene() {
+  const g = $('#cells'); g.innerHTML = ''; seq = []; const arr = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const e = mk('rect', { x: X0 + c * CS, y: Y0 + r * CS, width: CS, height: CS, class: 'cell' }, g);
+    e.dataset.b = (r + c) % 2; arr[r * COLS + c] = e }
+  for (let i = 0; i < COLS * ROWS; i++) { const r = Math.floor(i / COLS); let c = i % COLS; if (r % 2) c = COLS - 1 - c; seq.push(arr[r * COLS + c]) } // máy chạy kiểu zig-zag
+  $('#spare').innerHTML = ''; $('#sparecap').textContent = '';
+  $('#fence').style.strokeDashoffset = 100; $('#fencelbl').textContent = '';
+  ['#posts', '#tail', '#fencelbl', '#spool', '#bar', '#bp', '#slots'].forEach(s => $(s).style.opacity = '');
+  $('#slots').innerHTML = '';
+  machOn(0);
+}
+const paint = e => e.setAttribute('class', 'cell on' + (e.dataset.b === '1' ? ' b' : ''));
+function addSpare(i) {
+  if (i < 180) mk('rect', { x: 590 + (i % 20) * 14, y: 300 + Math.floor(i / 20) * 14, width: 12, height: 12, fill: '#e0894f', stroke: '#fff' }, $('#spare'));
+}
+function setWire(f, m, nums = true) { // nums=false: ẩn số mét để học sinh không đoán được đáp án // f: dây làm hàng rào, m: dây đã uốn khung (đơn vị m)
+  const rem = Math.max(0, 44 - f - m), rr = 16 + 30 * rem / 44, k = 300 / 44;
+  $('#coil').setAttribute('r', rr); $('#coil2').setAttribute('r', Math.max(rr - 6, 2));
+  $('#spooltxt').textContent = nums ? 'Cuộn dây thép · còn ' + fmt(rem) + ' m' : 'Cuộn dây thép';
+  $('#bF').setAttribute('width', f * k);
+  $('#bM').setAttribute('x', 620 + f * k); $('#bM').setAttribute('width', m * k);
+  $('#bR').setAttribute('x', 620 + (f + m) * k); $('#bR').setAttribute('width', rem * k);
+  $('#lgF').textContent = 'Làm hàng rào: ' + fmt(f) + ' m';
+  $('#lgM').textContent = nums ? 'Uốn khung bồn hoa: ' + fmt(m) + ' m' : 'Dây đã uốn khung';
+  $('#lgR').textContent = nums ? 'Dây còn dư: ' + fmt(rem) + ' m' : 'Dây còn dư';
+}
+function showSlots() {
+  const g = $('#slots'); g.innerHTML = '';
+  show('#slots');
+}
+
+/* ====== Nội dung các ải ====== */
+const L = [
+  { tag: 'ẢI 1 · LÁT GẠCH SÂN NHÀ', info: 'Sân hình chữ nhật dài 8 m, rộng 6 m. Gạch lát là hình vuông cạnh 40 cm (không tính mạch vữa và hao hụt).',
+    q: 'Gia đình cần bao nhiêu viên gạch để lát kín toàn bộ sân nhà?', inputs: [['a', 'Số viên gạch cần dùng:', 'viên']],
+    sol: '<b>Lời giải</b><br>• Chu vi viên gạch: 4 × 0,4 = 1,6 (m)<br>• Diện tích viên gạch: 0,4 × 0,4 = 0,16 (m²)<br>• Diện tích sân: 8 × 6 = 48 (m²)<br>• Số viên gạch cần dùng: 48 ÷ 0,16 = <b>300</b> (viên)' },
+  { tag: 'ẢI 2 · LÀM HÀNG RÀO', info: 'Gia đình có cuộn dây thép dài 44 m. Dây dùng để làm hàng rào bao quanh sân (không tính phần nối); phần còn dư sẽ dùng để uốn khung viền bồn hoa.',
+    q: 'Gia đình sử dụng dây thép để làm hàng rào bao quanh sân. Hãy tính chiều dài dây thép cần dùng và số mét dây thép còn dư.',
+    inputs: [['a', 'Chiều dài dây thép cần dùng:', 'm'], ['b', 'Chiều dài dây thép còn dư:', 'm']],
+    sol: '<b>Lời giải</b><br>• Chu vi sân: (8 + 6) × 2 = <b>28</b> (m) → dây làm hàng rào dài 28 m<br>• Dây thép còn dư: 44 − 28 = <b>16</b> (m)' },
+  { tag: 'ẢI 3 · UỐN KHUNG VIỀN BỒN HOA', info: 'Mỗi khung viền bồn hoa là một hình thang vuông có kích thước như hình bên phải. Dây thép được dùng đúng theo chu vi.',
+    q: 'Với số dây thép còn dư, gia đình có thể uốn được bao nhiêu khung viền bồn hoa hoàn chỉnh?', inputs: [['a', 'Số khung uốn được:', 'khung']],
+    sol: '<b>Lời giải</b><br>• Chu vi hình thang: 1 + 3 + 1,5 + 2,5 = 8 (m)<br>• Diện tích hình thang: (1 + 3) × 1,5 ÷ 2 = 3 (m²)<br>• Số khung uốn được: 16 ÷ 8 = <b>2</b> (khung)<br>• Dây thép còn dư: 16 − 2 × 8 = <b>0</b> (m)' }
+];
+
+function setPills() {
+  for (let i = 0; i < 3; i++) { const p = $('#p' + i);
+    p.className = 'pill' + (solved[i] ? ' done' : i + 1 === level ? ' active' : '');
+    p.textContent = (solved[i] ? '✅' : i + 1 === level ? '▶️' : (i === 0 || solved[i - 1]) ? '🔓' : '🔒') + ' Ải ' + (i + 1) + ': ' + NAMES[i] }
+}
+function render() {
+  const d = L[level - 1];
+  $('#panel').innerHTML = `<div class="tag">${d.tag}</div><p class="info">${d.info}</p><p class="q">“${d.q}”</p>
+  <div class="row">${d.inputs.map(i => `<label><span>${i[1]}</span><span class="in"><input id="${i[0]}" inputmode="decimal" autocomplete="off" enterkeyhint="done"> ${i[2]}</span></label>`).join('')}<button class="btn" id="chk">KIỂM TRA</button></div>
+  <div id="msg" class="msg" hidden role="status"></div><div id="sol" class="sol" hidden></div>
+  <button class="btn ok" id="next" hidden>${level < 3 ? 'Sang Ải ' + (level + 1) + ' →' : 'Xem kết quả 🎉'}</button>`;
+  $('#chk').onclick = check; setPills();
+}
+function enter(n) {
+  level = n; render(); $('#sample').style.opacity = n === 1 ? 1 : 0; // viên gạch mẫu chỉ hiện ở Ải 1
+  if (n === 2) { ['#spool', '#bar', '#tail'].forEach(s => show(s)); setWire(0, 0) }
+  if (n === 3) { show('#bp'); showSlots(); setWire(28, 0) }
+}
+
+/* ====== Kiểm tra đáp án ====== */
+const lock = v => document.querySelectorAll('#panel input,#chk').forEach(e => e.disabled = v);
+function finish(say, msg, sol) { // hoàn thành ải: khóa ô nhập, hiện lời giải, mở ải tiếp
+  solved[level - 1] = true; say('ok', msg); lock(true);
+  $('#sol').innerHTML = sol; $('#sol').hidden = false;
+  const nx = $('#next'); nx.hidden = false; nx.onclick = () => level < 3 ? enter(level + 1) : showWin();
+  setPills(); confetti(50); sfx.good(); nx.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+function check() {
+  const tok = run, m = $('#msg'); sfx.click();
+  const say = (c, h) => { m.hidden = false; m.className = 'msg ' + c; m.innerHTML = h; if (c === 'warn') sfx.warn(); m.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) };
+  [c1, c2, c3][level - 1](tok, say);
+}
+
+async function c1(tok, say) {
+  const n = num($('#a').value);
+  if (!Number.isInteger(n) || n > 5000) return say('warn', 'Hãy nhập số viên gạch là một số nguyên từ 0 đến 5000.');
+  lock(true); say('info', 'Máy lát gạch đang làm việc…');
+  seq.forEach(e => e.setAttribute('class', 'cell')); $('#spare').innerHTML = ''; $('#sparecap').textContent = '';
+  setMachine(cellPos(0)); machOn(1); await sleep(600); if (tok !== run) return;
+  let f = 0, s = 0, last = 0; motor(true, 'machine');
+  const ok = await anim(Math.min(4500, 1000 + n * 12), p => {
+    const k = Math.round(p * n), f0 = f, s0 = s;
+    while (f < Math.min(k, 300)) paint(seq[f++]);
+    setMachine(cellPos(Math.max(0, Math.min(k, 300) - 1)));
+    while (s < k - 300) addSpare(s++);
+    if (s) $('#sparecap').textContent = 'Gạch dư';
+    if ((f !== f0 || s !== s0) && performance.now() - last > 80) { sfx.lay(); last = performance.now() }
+  }, tok);
+  if (!ok) return;
+  motor(false); machOn(0);
+  if (n === 300) return finish(say, '🎉 Chính xác! Máy đã lát kín sân bằng 300 viên gạch. Ải 2 đã được mở khóa.', L[0].sol);
+  wrong[0]++; sfx.bad();
+  if (n < 300) { for (let i = n; i < 300; i++) seq[i].setAttribute('class', 'cell gap');
+    say('bad', 'Thiếu gạch. Hãy tính lại rồi nhập lại nhé.') }
+  else say('bad', 'Dư gạch. Hãy tính lại rồi nhập lại nhé.');
+  lock(false);
+}
+
+async function c2(tok, say) {
+  const a = num($('#a').value), b = num($('#b').value);
+  if (!(a >= 0 && b >= 0 && a <= 1000 && b <= 1000)) return say('warn', 'Hãy nhập đủ cả hai số (dây cần dùng và dây còn dư), là các số từ 0 trở lên.');
+  if (a !== 28 || b !== 16) { wrong[1]++; sfx.bad(); return say('bad', 'Chưa chính xác. Hãy kiểm tra lại cách tính chu vi sân và số dây còn dư rồi nhập lại nhé.') }
+  lock(true); say('info', 'Cuộn dây đang nhả dây quanh sân…'); motor(true, 'wire');
+  const ok = await anim(3800, p => { $('#fence').style.strokeDashoffset = 100 * (1 - p); setWire(28 * p, 0) }, tok);
+  if (!ok) return;
+  motor(false); show('#posts'); $('#fencelbl').textContent = 'Dây làm hàng rào: 28 m · Dây còn dư: 16 m'; show('#fencelbl');
+  finish(say, '🎉 Chính xác! Hàng rào đã khép kín bốn cạnh sân. Ải 3 đã được mở khóa.', L[1].sol);
+}
+
+async function c3(tok, say) {
+  const k = num($('#a').value);
+  if (!Number.isInteger(k) || k > 1000) return say('warn', 'Hãy nhập số khung là một số nguyên từ 0 đến 1000.');
+  const can = Math.min(k, 2);
+  lock(true); say('info', 'Đang uốn dây thép…'); showSlots(); setWire(28, 0); motor(true, 'wire');
+  for (let j = 0; j < can; j++) {
+    const p = mk('path', { d: trap(600 + j * 115, SY, 28), pathLength: 100, class: 'frame' }, $('#slots'));
+    const ok = await anim(1700, t => { p.style.strokeDashoffset = 100 * (1 - t); p.style.fillOpacity = Math.max(0, (t - .6) / .4) * .55; setWire(28, 8 * (j + t), false) }, tok);
+    if (!ok) return; sfx.twang();
+  }
+  motor(false);
+  if (k === 2) { setWire(28, 16); return finish(say, '🎉 Hoàn thành! Hai khung viền bồn hoa đã được uốn xong và cuộn dây đã hết.', L[2].sol) }
+  wrong[2]++; sfx.bad();
+  if (k < 2) say('bad', 'Chưa uốn đủ khung: dây thép vẫn còn dư. Hãy kiểm tra lại rồi nhập lại nhé.');
+  else { mk('path', { d: trap(600 + 2 * 115, SY, 28), class: 'ghost' }, $('#slots'));
+    say('bad', 'Không đủ dây thép để uốn nhiều khung như vậy: thiếu dây (khung nét đứt đỏ chưa thể hoàn thành). Hãy nhập lại nhé.') }
+  lock(false);
+}
+
+/* ====== Kết thúc & chơi lại ====== */
+function showWin() {
+  const t = wrong.reduce((a, b) => a + b, 0);
+  $('#stats').innerHTML = wrong.map((w, i) => `<tr><td>Ải ${i + 1} – Số lần nhập sai</td><td>${w} lần</td></tr>`).join('') + `<tr class="total"><td>Tổng số lần nhập sai</td><td>${t} lần</td></tr>`;
+  $('#win').hidden = false; confetti(140); sfx.win();
+}
+function reset() {
+  run++; motor(false); level = 1; wrong = [0, 0, 0]; solved = [false, false, false];
+  $('#win').hidden = true; document.querySelectorAll('.conf').forEach(e => e.remove());
+  initScene(); enter(1);
+}
+$('#again').onclick = reset;
+(() => { const g = $('#speck'); let r = 7; const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280; // rải vụn đất cho sân trông tự nhiên
+  for (let i = 0; i < 40; i++) mk('circle', { cx: 66 + rnd() * 468, cy: 66 + rnd() * 348, r: 1.5 + rnd() * 2, fill: '#c2a877' }, g) })();
+$('#panel').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT' && !e.target.disabled) check() });
+reset();
+</script>
+</body>
+</html>
