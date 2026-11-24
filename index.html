@@ -26,6 +26,8 @@ header p{display:none}
 .stagewrap{overflow:hidden;padding:4px}
 .layout{display:grid;gap:12px;margin-top:10px;align-items:start}
 .layout .card{margin-top:0}
+
+
 svg{display:block;width:100%;height:auto;max-height:46dvh;margin:0 auto}
 /* Điện thoại dọc / màn hình hẹp: khung hình dính trên cùng để luôn thấy hoạt ảnh khi cuộn xuống bảng nhập */
 .stagewrap{position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
@@ -36,6 +38,7 @@ svg{display:block;width:100%;height:auto;max-height:46dvh;margin:0 auto}
   .panel{max-height:calc(100dvh - 110px);overflow:auto}
   svg{max-height:calc(100dvh - 110px)}
   .row{flex-direction:column;align-items:flex-start}}
+#timer{font-variant-numeric:tabular-nums;min-width:92px;text-align:center}
 .t{fill:#16324f;font:600 14px 'Be Vietnam Pro',system-ui,sans-serif}
 .fade{opacity:0;transition:opacity .6s}
 .panel{padding:14px 18px}
@@ -114,6 +117,7 @@ td:last-child,th:last-child{text-align:right}
   <p>Vượt qua 3 ải để giúp gia đình hoàn thành khuôn viên sân nhà.</p>
   <nav class="steps"><div class="pill" id="p0"></div><div class="pill" id="p1"></div><div class="pill" id="p2"></div></nav>
   <button id="mute" class="pill" style="cursor:pointer;font:600 14px 'Be Vietnam Pro',system-ui,sans-serif">🔊 Âm thanh: bật</button>
+  <div id="timer" class="pill" role="timer">⏱ 00:00</div>
 </header>
 
 <main class="layout">
@@ -260,6 +264,13 @@ function motor(on, kind) { // tiếng động cơ / cuộn dây chạy liên t�
 }
 $('#mute').onclick = () => { muted = !muted; motor(false); $('#mute').textContent = muted ? '🔇 Âm thanh: tắt' : '🔊 Âm thanh: bật'; sfx.click() };
 
+/* ====== Đồng hồ đếm giờ ====== */
+let t0 = 0, tInt = null, elapsed = 0;
+const mmss = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+function tick() { elapsed = Math.floor((performance.now() - t0) / 1000); $('#timer').textContent = '⏱ ' + mmss(elapsed) }
+function timerStart() { clearInterval(tInt); t0 = performance.now(); tick(); tInt = setInterval(tick, 250) }
+function timerStop() { tick(); clearInterval(tInt) }
+
 /* ====== Trạng thái ====== */
 const COLS = 20, ROWS = 15, CS = 24, X0 = 60, Y0 = 60, PARK = [90, 480], SY = 420;
 let run = 0, level = 1, wrong = [0, 0, 0], solved = [false, false, false], seq = [];
@@ -340,6 +351,7 @@ function enter(n) {
 /* ====== Kiểm tra đáp án ====== */
 const lock = v => document.querySelectorAll('#panel input,#chk').forEach(e => e.disabled = v);
 function finish(say, msg, sol) { // hoàn thành ải: khóa ô nhập, hiện lời giải, mở ải tiếp
+  if (level === 3) timerStop();
   solved[level - 1] = true; say('ok', msg); lock(true);
   $('#sol').innerHTML = sol; $('#sol').hidden = false;
   const nx = $('#next'); nx.hidden = false; nx.onclick = () => level < 3 ? enter(level + 1) : showWin();
@@ -409,11 +421,11 @@ async function c3(tok, say) {
 /* ====== Kết thúc & chơi lại ====== */
 function showWin() {
   const t = wrong.reduce((a, b) => a + b, 0);
-  $('#stats').innerHTML = wrong.map((w, i) => `<tr><td>Ải ${i + 1} – Số lần nhập sai</td><td>${w} lần</td></tr>`).join('') + `<tr class="total"><td>Tổng số lần nhập sai</td><td>${t} lần</td></tr>`;
+  $('#stats').innerHTML = wrong.map((w, i) => `<tr><td>Ải ${i + 1} – Số lần nhập sai</td><td>${w} lần</td></tr>`).join('') + `<tr class="total"><td>Tổng số lần nhập sai</td><td>${t} lần</td></tr><tr class="total"><td>Thời gian hoàn thành</td><td>${mmss(elapsed)}</td></tr>`;
   $('#win').hidden = false; confetti(140); sfx.win();
 }
 function reset() {
-  run++; motor(false); level = 1; wrong = [0, 0, 0]; solved = [false, false, false];
+  run++; motor(false); timerStart(); level = 1; wrong = [0, 0, 0]; solved = [false, false, false];
   $('#win').hidden = true; document.querySelectorAll('.conf').forEach(e => e.remove());
   initScene(); enter(1);
 }
